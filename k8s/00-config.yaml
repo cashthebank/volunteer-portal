@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: goodvolunteer
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: goodvolunteer
+data:
+  POSTGRES_HOST: "postgres"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "volunteer"
+  POSTGRES_USER: "volunteer"
+  KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  KAFKA_TOPIC: "volunteer-events"
+  KAFKA_GROUP: "volunteer-consumers"
+---
+# Postgres password lives in a Secret (not a ConfigMap) — safe practice.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: goodvolunteer
+type: Opaque
+stringData:
+  POSTGRES_PASSWORD: "volunteer"

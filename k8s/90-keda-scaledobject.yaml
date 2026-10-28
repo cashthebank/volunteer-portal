@@ -1,0 +1,29 @@
+# KEDA autoscaling on Kafka consumer lag.
+#
+# Prerequisite: install KEDA once per cluster:
+#   helm repo add kedacore https://kedacore.github.io/charts
+#   helm repo update
+#   helm install keda kedacore/keda --namespace keda --create-namespace
+#
+# maxReplicaCount = 3 because the topic has 3 partitions. A consumer group can
+# only parallelise up to the partition count — extra consumers would sit idle.
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: consumer-scaler
+  namespace: goodvolunteer
+spec:
+  scaleTargetRef:
+    name: consumer
+  pollingInterval: 10        # check lag every 10s
+  cooldownPeriod: 30         # wait 30s of low lag before scaling down
+  minReplicaCount: 1
+  maxReplicaCount: 3         # = partition count
+  triggers:
+    - type: kafka
+      metadata:
+        bootstrapServers: kafka:9092
+        consumerGroup: volunteer-consumers
+        topic: volunteer-events
+        lagThreshold: "20"   # scale out when lag per replica exceeds 20
+        offsetResetPolicy: earliest

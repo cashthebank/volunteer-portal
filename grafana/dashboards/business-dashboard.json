@@ -1,0 +1,70 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "schemaVersion": 39,
+  "title": "GoodVolunteer — Business Metrics",
+  "uid": "gv-business",
+  "tags": ["goodvolunteer", "business"],
+  "time": {"from": "now-1h", "to": "now"},
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Registrations per minute",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "sum(rate(consumer_registrations_total[1m])) * 60", "legendFormat": "registrations/min"}
+      ]
+    },
+    {
+      "type": "piechart",
+      "title": "Registrations by Cause",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "sum(consumer_registrations_total) by (cause)", "legendFormat": "{{cause}}"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Cumulative Volunteer Hours",
+      "gridPos": {"h": 6, "w": 8, "x": 0, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "consumer_volunteer_hours_total", "legendFormat": "hours"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Events Created",
+      "gridPos": {"h": 6, "w": 8, "x": 8, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "consumer_events_created_total", "legendFormat": "created"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Events Deleted",
+      "gridPos": {"h": 6, "w": 8, "x": 16, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "consumer_events_deleted_total", "legendFormat": "deleted"}
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Most Popular Events (by registrations) — from Postgres",
+      "gridPos": {"h": 9, "w": 24, "x": 0, "y": 14},
+      "datasource": {"type": "postgres", "uid": "postgres"},
+      "targets": [
+        {
+          "rawSql": "SELECT e.title, e.cause, COUNT(r.id) AS registrations FROM events e LEFT JOIN registrations r ON e.id=r.event_id GROUP BY e.id, e.title, e.cause ORDER BY registrations DESC LIMIT 10;",
+          "format": "table",
+          "rawQuery": true
+        }
+      ]
+    }
+  ]
+}
